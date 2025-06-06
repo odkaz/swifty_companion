@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^5.1.0
+  flutter_web_auth_2: ^4.1.0
   http: ^1.2.0
   url_launcher: ^6.2.5
 
@@ -86,3 +87,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - .env
