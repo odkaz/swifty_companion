@@ -1,29 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   Future<void> _startOAuthFlow(BuildContext context) async {
-    final clientId = dotenv.env['API_UID'];
-    final redirectUri = dotenv.env['REDIRECT_URI'];
+    final clientId = dotenv.env['API_UID']!;
+    final redirect = dotenv.env['REDIRECT_URI']!;
+    final authUrl =
+        'https://api.intra.42.fr/oauth/authorize'
+        '?client_id=$clientId'
+        '&redirect_uri=$redirect'
+        '&response_type=code'
+        '&scope=public';
 
-    final authUrl = Uri.parse(
-      'https://api.intra.42.fr/oauth/authorize'
-      '?client_id=$clientId'
-      '&redirect_uri=$redirectUri'
-      '&response_type=code'
-      '&scope=public',
-    );
-
-    if (await canLaunchUrl(authUrl)) {
-      await launchUrl(authUrl, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not launch login URL')),
+    try {
+      // Opens browser and waits for redirect
+      final result = await FlutterWebAuth2.authenticate(
+        url: authUrl,
+        callbackUrlScheme: Uri.parse(redirect).scheme,
       );
+      // e.g. result → com.swiftycompanion://callback?code=XYZ
+      final code = Uri.parse(result).queryParameters['code'];
+      if (code == null) throw 'No code returned';
+      await _exchangeCodeForToken(code, context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
     }
+  }
+
+  Future<void> _exchangeCodeForToken(String code, BuildContext ctx) async {
+    final tokenJson = await AuthService.tokenFromCode(code);
+    final accessToken = tokenJson['access_token'];
+    // 👉 Store it (memory for now, later secure storage)
+    Navigator.pushReplacementNamed(
+      ctx,
+      '/profile',
+      arguments: accessToken,
+    ); // routes set up in main.dart
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
+import 'screens/profile_screen.dart';
 
 Future<void> main() async {
   try {
@@ -16,11 +17,12 @@ class SwiftyCompanionApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Swifty Companion',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.deepPurple,
-      ),
-      home: LoginScreen(),
+      theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.deepPurple),
+      initialRoute: '/',
+      routes: {
+        '/': (_) => const LoginScreen(),
+        '/profile': (_) => const ProfileScreen(),
+      },
     );
   }
 }
