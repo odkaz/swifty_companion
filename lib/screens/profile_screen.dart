@@ -118,10 +118,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _detailsRow('Email', user!['email']),
             _detailsRow('Mobile', user!['phone']),
             _detailsRow('Location', user!['location']),
-            _detailsRow('Wallet', user!['wallet'].toString()),
+            _detailsRow('Wallet', user!['wallet']?.toString()),
             _detailsRow(
               'Level',
-              user!['cursus_users'][0]['level'].toStringAsFixed(2),
+              user!['cursus_users']?[0]?['level']?.toStringAsFixed(2),
             ),
             ListView(
               shrinkWrap: true,
