@@ -37,11 +37,7 @@ class LoginScreen extends StatelessWidget {
     final tokenJson = await AuthService.tokenFromCode(code);
     final accessToken = tokenJson['access_token'];
     // 👉 Store it (memory for now, later secure storage)
-    Navigator.pushReplacementNamed(
-      ctx,
-      '/profile',
-      arguments: accessToken,
-    ); // routes set up in main.dart
+    Navigator.pushNamed(ctx, '/profile', arguments: accessToken);
   }
 
   @override
