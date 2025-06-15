@@ -21,17 +21,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchUser() async {
-    final res = await http.get(
-      Uri.parse('https://api.intra.42.fr/v2/me'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (res.statusCode == 200) {
-      setState(() => user = jsonDecode(res.body));
-    } else {
-      // Handle errors (network, 401, etc.)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error ${res.statusCode}: ${res.reasonPhrase}')),
+    print('📡 Calling _fetchUser...');
+    try {
+      final res = await http.get(
+        Uri.parse('https://api.intra.42.fr/v2/me'),
+        headers: {'Authorization': 'Bearer $token'},
       );
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        setState(() => user = data);
+        print('✅ User fetched: ${user!['login']}');
+      } else if (res.statusCode == 401) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Session expired. Please log in again.'),
+          ),
+        );
+        Navigator.pop(context); // Go back to login
+      } else {
+        print('❌ HTTP ${res.statusCode}: ${res.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error ${res.statusCode}: ${res.reasonPhrase}'),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Network error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('⚠️ Network error: $e')));
     }
   }
 

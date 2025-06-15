@@ -17,19 +17,23 @@ class LoginScreen extends StatelessWidget {
         '&scope=public';
 
     try {
-      // Opens browser and waits for redirect
       final result = await FlutterWebAuth2.authenticate(
         url: authUrl,
         callbackUrlScheme: Uri.parse(redirect).scheme,
       );
-      // e.g. result → com.swiftycompanion://callback?code=XYZ
+
       final code = Uri.parse(result).queryParameters['code'];
       if (code == null) throw 'No code returned';
+
       await _exchangeCodeForToken(code, context);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      // ✅ Clean message for user
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('⚠️ Login was cancelled or failed.')),
+      );
+
+      // 🐞 Dev log (not shown to user)
+      print('Login failed: $e');
     }
   }
 
