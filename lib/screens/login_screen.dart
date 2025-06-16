@@ -101,13 +101,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ? Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: _loginController,
-                      decoration: const InputDecoration(
-                        labelText: 'Enter 42 login',
-                        border: OutlineInputBorder(),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: TextField(
+                        controller: _loginController,
+                        decoration: const InputDecoration(
+                          labelText: 'Enter 42 login',
+                          border: OutlineInputBorder(),
+                        ),
+                        onSubmitted: (_) => _submit(),
                       ),
-                      onSubmitted: (_) => _submit(),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
