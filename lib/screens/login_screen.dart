@@ -68,6 +68,16 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _logout() {
+    AppState.token = null;
+    _loginController.clear();
+    setState(() => _loggedIn = false);
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('👋 Logged out.')));
+  }
+
   void _submit() {
     final login = _loginController.text.trim();
     if (login.isEmpty || AppState.token == null) return;
@@ -98,6 +108,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ElevatedButton(
                       onPressed: _submit,
                       child: const Text('View Profile'),
+                    ),
+                    const SizedBox(height: 24),
+                    TextButton.icon(
+                      onPressed: _logout,
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Log Out'),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
                     ),
                   ],
                 )
