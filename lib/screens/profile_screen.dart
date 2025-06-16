@@ -80,10 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
         );
         Navigator.pop(context);
       }
@@ -153,10 +150,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     final skills = user!['cursus_users']?[0]?['skills'] ?? [];
     final projects = user!['projects_users'] ?? [];
 
+    Map? selectedCursus;
+
+    final cursusUsers = (user!['cursus_users'] as List).cast<Map>();
+
+    // Try to get main cursus first (id = 21)
+    selectedCursus = cursusUsers.firstWhere(
+      (c) => c['cursus']['id'] == 21,
+      orElse: () => {},
+    );
+
+    // If not found, fall back to any Piscine cursus
+    if (selectedCursus.isEmpty) {
+      selectedCursus = cursusUsers.firstWhere(
+        (c) =>
+            (c['cursus']['name'] as String).toLowerCase().contains('piscine'),
+        orElse: () => {},
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(user!['login']),
@@ -172,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             CircleAvatar(
               radius: 48,
-              backgroundImage: NetworkImage(user!['image']?['link'] ?? ''),
+              backgroundImage: NetworkImage(user!['image']['link']),
             ),
             const SizedBox(height: 16),
             _detailsRow('Email', user!['email']),
@@ -180,8 +194,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _detailsRow('Location', user!['location']),
             _detailsRow('Wallet', user!['wallet']?.toString()),
             _detailsRow(
-              'Level',
-              user!['cursus_users']?[0]?['level']?.toStringAsFixed(2),
+              'Cursus Level',
+              selectedCursus.isEmpty
+                  ? '—'
+                  : '${selectedCursus['cursus']['name']} (${(selectedCursus['level'] as num).toStringAsFixed(2)})',
             ),
             const SizedBox(height: 24),
             const Align(
