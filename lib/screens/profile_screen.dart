@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../state/app_state.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -25,8 +26,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _ensureToken() async {
     if (AppState.token != null) return;
 
-    const clientId = 'YOUR_CLIENT_ID';
-    const clientSecret = 'YOUR_CLIENT_SECRET';
+    final clientId = dotenv.env['API_UID']!;
+    final clientSecret = dotenv.env['API_SECRET']!;
 
     final res = await http.post(
       Uri.parse('https://api.intra.42.fr/oauth/token'),
@@ -53,22 +54,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => user = jsonDecode(res.body));
       } else if (res.statusCode == 401 && !retrying) {
         // Token expired: clear and retry
-        print("token${AppState.token}");
         AppState.token = null;
-        await _ensureToken(); // reuse the same logic from login
-        _fetchUser(retrying: true); // retry only once
+        await _ensureToken();
+        _fetchUser(retrying: true);
       } else {
+        String errorMessage;
+        switch (res.statusCode) {
+          case 400:
+            errorMessage = 'Invalid request format';
+            break;
+          case 403:
+            errorMessage = 'Access forbidden - insufficient permissions';
+            break;
+          case 404:
+            errorMessage = 'User not found';
+            break;
+          case 422:
+            errorMessage = 'Invalid data provided';
+            break;
+          case 500:
+            errorMessage = 'Server error - please try again later';
+            break;
+          default:
+            errorMessage = 'Error ${res.statusCode}: ${res.reasonPhrase}';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error ${res.statusCode}: ${res.reasonPhrase}'),
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
           ),
         );
         Navigator.pop(context);
       }
+    } on http.ClientException catch (e) {
+      // Handle connection refused and other client-side errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Connection error: ${e.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Network error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unexpected error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.pop(context);
     }
   }
 
