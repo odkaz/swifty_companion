@@ -150,9 +150,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final skills = user!['cursus_users']?[0]?['skills'] ?? [];
-    final projects = user!['projects_users'] ?? [];
-
     Map? selectedCursus;
 
     final cursusUsers = (user!['cursus_users'] as List).cast<Map>();
@@ -171,6 +168,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         orElse: () => {},
       );
     }
+
+    final skills = selectedCursus.isEmpty ? [] : (selectedCursus['skills'] ?? []);
+    final projects = user!['projects_users'] ?? [];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(user!['login']),
